@@ -334,7 +334,7 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold mb-4">Community</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">GitHub</a></li>
+                <li><a href="https://github.com/cold-briu/globete-pay" className="hover:text-white transition-colors">GitHub</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
               </ul>
