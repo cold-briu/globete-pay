@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createPublicClient, createWalletClient, custom, http } from 'viem';
 import { celo } from 'viem/chains';
 import { useApp, NETWORKS } from '@/contexts/AppContext';
@@ -20,6 +21,7 @@ const celoPublicClient = createPublicClient({
 
 export default function MainPage() {
     const { setWalletAddress, setNetwork } = useApp();
+    const router = useRouter();
     const [rpcStatus, setRpcStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [rpcChainId, setRpcChainId] = useState<number | null>(null);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -97,9 +99,9 @@ export default function MainPage() {
                 setWalletAddress(primary);
                 setNetwork(NETWORKS.mainnet);
             }
-            // Redirect to identity verification after connection
+            // Redirect to identity verification after connection (client-side to preserve context)
             if (accounts && accounts[0]) {
-                window.location.href = '/main/identity-verification';
+                router.push('/main/identity-verification');
             }
         } catch (err: any) {
             setConnectError(err?.message || 'Failed to connect');

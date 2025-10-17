@@ -26,7 +26,7 @@ export default function IdentityVerificationPage() {
                 version: 2,
                 appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Globete Pay",
                 scope: process.env.NEXT_PUBLIC_SELF_SCOPE || "globete-pay",
-                endpoint: `${process.env.NEXT_PUBLIC_SELF_ENDPOINT || ''}`,
+                endpoint: process.env.NEXT_PUBLIC_SELF_ENDPOINT || '/api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
                 endpointType: "staging_https",
