@@ -1,65 +1,21 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type {
+    AppContextType,
+    Balance,
+    Network,
+    NetworkType,
+    Session,
+    Transaction
+} from '@/contexts/types';
+import rawMockTransactions from '@/contexts/mockTransactions.json';
 
-// Types
-export type NetworkType = 'alfajores' | 'mainnet';
-export type TransactionStatus = 'pending' | 'confirmed' | 'settled' | 'failed';
-export type TransactionDirection = 'sent' | 'received';
-export type TokenType = 'cCOP' | 'cUSD' | 'cEUR';
-
-export interface Network {
-    name: string;
-    chainId: number;
-    type: NetworkType;
-}
-
-export interface Session {
-    walletAddress: string | null;
-    isConnected: boolean;
-    network: Network;
-    cameraPermission: 'granted' | 'denied' | 'prompt' | 'unknown';
-}
-
-export interface Balance {
-    cCOP: string;
-    cUSD: string;
-    cEUR: string;
-}
-
-export interface Transaction {
-    id: string;
-    direction: TransactionDirection;
-    amount: string; // in token units (wei)
-    amountCOP: number; // display amount in COP
-    token: TokenType;
-    counterparty: {
-        address: string;
-        name?: string;
-        alias?: string;
-    };
-    status: TransactionStatus;
-    timestamp: string; // ISO string
-    note?: string;
-    hashes: {
-        txHash?: string;
-        brebRef?: string;
-        internalRef: string;
-    };
-    fee?: string; // in token units
-}
-
-interface AppContextType {
-    session: Session;
-    balances: Balance;
-    transactions: Transaction[];
-    setWalletAddress: (address: string) => void;
-    setNetwork: (network: Network) => void;
-    setCameraPermission: (permission: Session['cameraPermission']) => void;
-    updateBalances: (balances: Partial<Balance>) => void;
-    addTransaction: (transaction: Transaction) => void;
-    disconnect: () => void;
-}
+// Prepare mock transactions from JSON (fill missing timestamps)
+const MOCK_TRANSACTIONS: Transaction[] = (rawMockTransactions as unknown as Transaction[]).map(t => ({
+    ...t,
+    timestamp: t.timestamp && t.timestamp.length > 0 ? t.timestamp : new Date().toISOString()
+}));
 
 const NETWORKS: Record<NetworkType, Network> = {
     alfajores: {
@@ -73,128 +29,6 @@ const NETWORKS: Record<NetworkType, Network> = {
         type: 'mainnet'
     }
 };
-
-// Mock transaction data
-const MOCK_TRANSACTIONS: Transaction[] = [
-    {
-        id: 'tx-001',
-        direction: 'sent',
-        amount: '50000000000000000000', // 50 cCOP
-        amountCOP: 50000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0',
-            name: 'Maria García',
-            alias: '@mariag'
-        },
-        status: 'settled',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-        note: 'Pago almuerzo 🍕',
-        hashes: {
-            txHash: '0x1234...5678',
-            brebRef: 'BREB-2025-001234',
-            internalRef: 'INT-001'
-        },
-        fee: '100000000000000' // 0.0001 cCOP
-    },
-    {
-        id: 'tx-002',
-        direction: 'received',
-        amount: '150000000000000000000', // 150 cCOP
-        amountCOP: 150000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
-            name: 'Carlos Rodríguez',
-            alias: '@carlosr'
-        },
-        status: 'settled',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-        note: 'Pago por servicio',
-        hashes: {
-            txHash: '0x9876...4321',
-            brebRef: 'BREB-2025-001233',
-            internalRef: 'INT-002'
-        }
-    },
-    {
-        id: 'tx-003',
-        direction: 'sent',
-        amount: '25000000000000000000', // 25 cCOP
-        amountCOP: 25000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-            alias: '@tienda_local'
-        },
-        status: 'settled',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        hashes: {
-            txHash: '0xabcd...ef01',
-            brebRef: 'BREB-2025-001230',
-            internalRef: 'INT-003'
-        },
-        fee: '100000000000000'
-    },
-    {
-        id: 'tx-004',
-        direction: 'received',
-        amount: '200000000000000000000', // 200 cCOP
-        amountCOP: 200000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
-            name: 'Ana Martínez'
-        },
-        status: 'settled',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-        note: 'Reembolso',
-        hashes: {
-            txHash: '0xdef0...1234',
-            brebRef: 'BREB-2025-001225',
-            internalRef: 'INT-004'
-        }
-    },
-    {
-        id: 'tx-005',
-        direction: 'sent',
-        amount: '75000000000000000000', // 75 cCOP
-        amountCOP: 75000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
-            name: 'Supermercado El Ahorro'
-        },
-        status: 'settled',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-        note: 'Compras del mes',
-        hashes: {
-            txHash: '0x5678...abcd',
-            brebRef: 'BREB-2025-001220',
-            internalRef: 'INT-005'
-        },
-        fee: '100000000000000'
-    },
-    {
-        id: 'tx-006',
-        direction: 'sent',
-        amount: '10000000000000000000', // 10 cCOP
-        amountCOP: 10000,
-        token: 'cCOP',
-        counterparty: {
-            address: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
-            alias: '@cafe_central'
-        },
-        status: 'pending',
-        timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
-        note: 'Café ☕',
-        hashes: {
-            txHash: '0x1111...2222',
-            internalRef: 'INT-006'
-        },
-        fee: '100000000000000'
-    }
-];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -214,27 +48,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const [transactions, setTransactions] = useState<Transaction[]>(MOCK_TRANSACTIONS);
 
-    // Load from localStorage on mount
+    // Load persisted camera permission on mount (wallet address/network comes from provider)
     useEffect(() => {
-        const savedAddress = localStorage.getItem('wallet_address');
-        const savedNetwork = localStorage.getItem('network');
         const savedPermission = localStorage.getItem('camera_permission') as Session['cameraPermission'] | null;
-
-        if (savedAddress) {
-            setSession(prev => ({
-                ...prev,
-                walletAddress: savedAddress,
-                isConnected: true
-            }));
-        }
-
-        if (savedNetwork && (savedNetwork === 'alfajores' || savedNetwork === 'mainnet')) {
-            setSession(prev => ({
-                ...prev,
-                network: NETWORKS[savedNetwork as NetworkType]
-            }));
-        }
-
         if (savedPermission) {
             setSession(prev => ({
                 ...prev,
@@ -244,7 +60,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const setWalletAddress = (address: string) => {
-        localStorage.setItem('wallet_address', address);
         setSession(prev => ({
             ...prev,
             walletAddress: address,
@@ -253,7 +68,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const setNetwork = (network: Network) => {
-        localStorage.setItem('network', network.type);
         setSession(prev => ({
             ...prev,
             network
@@ -280,7 +94,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const disconnect = () => {
-        localStorage.removeItem('wallet_address');
         setSession(prev => ({
             ...prev,
             walletAddress: null,
@@ -293,6 +106,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
         });
         setTransactions([]); // Clear transactions on disconnect
     };
+
+    // Sync with injected wallet provider (accounts/chain changes)
+    useEffect(() => {
+        if (typeof window === 'undefined' || !(window as any).ethereum) return;
+        const ethereum = (window as any).ethereum;
+
+        const handleAccountsChanged = (accounts: string[]) => {
+            if (accounts && accounts[0]) {
+                setWalletAddress(accounts[0]);
+            } else {
+                disconnect();
+            }
+        };
+
+        const handleChainChanged = (chainIdHex: string) => {
+            try {
+                const id = typeof chainIdHex === 'string' && chainIdHex.startsWith('0x')
+                    ? parseInt(chainIdHex, 16)
+                    : Number(chainIdHex);
+                if (id === 42220) setNetwork(NETWORKS.mainnet);
+                if (id === 44787) setNetwork(NETWORKS.alfajores);
+            } catch {
+                // ignore
+            }
+        };
+
+        // Initialize from provider on mount
+        (async () => {
+            try {
+                const [accounts, chainIdHex] = await Promise.all([
+                    ethereum.request({ method: 'eth_accounts' }),
+                    ethereum.request({ method: 'eth_chainId' })
+                ]);
+                if (Array.isArray(accounts) && accounts[0]) {
+                    setWalletAddress(accounts[0] as string);
+                }
+                if (typeof chainIdHex === 'string') {
+                    handleChainChanged(chainIdHex);
+                }
+            } catch {
+                // ignore init errors
+            }
+        })();
+
+        ethereum.on?.('accountsChanged', handleAccountsChanged);
+        ethereum.on?.('chainChanged', handleChainChanged);
+        return () => {
+            ethereum.removeListener?.('accountsChanged', handleAccountsChanged);
+            ethereum.removeListener?.('chainChanged', handleChainChanged);
+        };
+    }, []);
 
     return (
         <AppContext.Provider

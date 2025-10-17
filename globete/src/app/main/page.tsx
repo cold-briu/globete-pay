@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPublicClient, createWalletClient, custom, http } from 'viem';
 import { celo } from 'viem/chains';
+import { useApp, NETWORKS } from '@/contexts/AppContext';
 
 // Create a viem public client for Celo mainnet using Forno RPC
 const celoPublicClient = createPublicClient({
@@ -18,6 +19,7 @@ const celoPublicClient = createPublicClient({
 });
 
 export default function MainPage() {
+    const { setWalletAddress, setNetwork } = useApp();
     const [rpcStatus, setRpcStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [rpcChainId, setRpcChainId] = useState<number | null>(null);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -89,7 +91,12 @@ export default function MainPage() {
             }
 
             const accounts = await walletClient.requestAddresses();
-            setConnectedAddress(accounts?.[0] ?? null);
+            const primary = accounts?.[0] ?? null;
+            setConnectedAddress(primary);
+            if (primary) {
+                setWalletAddress(primary);
+                setNetwork(NETWORKS.mainnet);
+            }
             // Redirect to identity verification after connection
             if (accounts && accounts[0]) {
                 window.location.href = '/main/identity-verification';
