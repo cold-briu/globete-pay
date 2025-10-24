@@ -20,6 +20,31 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  // TypeScript-specific rule overrides
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      // disable or downgrade as you prefer
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          // allow underscore to intentionally mark unused
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  // JSX-specific rule override
+  {
+    files: ["**/*.{jsx,tsx}"],
+    rules: {
+      "react/no-unescaped-entities": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

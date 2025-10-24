@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Transaction } from '@/contexts/AppContext';
+import type { Transaction } from '@/contexts/types';
 import { formatCOP, formatDateTime } from '@/lib/utils';
 
 interface TransactionItemProps {
@@ -49,8 +49,8 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
         >
             {/* Icon */}
             <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${isSent
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                 }`}>
                 <span className="text-2xl">{isSent ? '📤' : '📥'}</span>
             </div>
@@ -70,8 +70,8 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
                     </div>
                     <div className="text-right flex-shrink-0">
                         <p className={`font-semibold ${isSent
-                                ? 'text-gray-900 dark:text-white'
-                                : 'text-green-600 dark:text-green-400'
+                            ? 'text-gray-900 dark:text-white'
+                            : 'text-green-600 dark:text-green-400'
                             }`}>
                             {isSent ? '-' : '+'}{formatCOP(amountCOP)}
                         </p>

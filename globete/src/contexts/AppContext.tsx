@@ -10,7 +10,6 @@ import type {
     Transaction
 } from '@/contexts/types';
 import rawMockTransactions from '@/contexts/mockTransactions.json';
-
 // Prepare mock transactions from JSON (fill missing timestamps)
 const MOCK_TRANSACTIONS: Transaction[] = (rawMockTransactions as unknown as Transaction[]).map(t => ({
     ...t,
