@@ -9,12 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@selfxyz/core": "^1.1.0-beta.7",
-    "@selfxyz/qrcode": "^1.0.15",
+    "@selfxyz/core": "1.1.0-beta.7",
+    "@selfxyz/qrcode": "1.0.15",
     "ethers": "^6.15.0",
     "next": "15.5.4",
-    "react": "18.0.0",
-    "react-dom": "18.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "viem": "^2.38.3"
   },
   "devDependencies": {
