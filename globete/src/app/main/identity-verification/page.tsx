@@ -11,6 +11,8 @@ export default function IdentityVerificationPage() {
     const walletAddress = session.walletAddress;
     const router = useRouter();
 
+    const [universalLink, setUniversalLink] = useState("");
+
     const [selfApp, setSelfApp] = useState<SelfApp | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,21 +26,38 @@ export default function IdentityVerificationPage() {
         try {
             const app = new SelfAppBuilder({
                 version: 2,
-                appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Globete Pay",
-                scope: process.env.NEXT_PUBLIC_SELF_SCOPE || "globete-pay",
-                endpoint: process.env.NEXT_PUBLIC_SELF_ENDPOINT || '/api/identity-verification',
+                appName: "Globete Pay",
+                scope: "globete-pay",
+                endpoint: '/api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
+                devMode: false,
                 endpointType: "staging_https",
-                userIdType: "hex"
+                userIdType: "hex",
+                userDefinedData: "Hello World",
+                disclosures: {
+                    //check the API reference for more disclose attributes!
+                    minimumAge: 18,
+                }
             }).build();
             // Optional: universal link available if needed
-            getUniversalLink(app);
+            setUniversalLink(getUniversalLink(app));
             setSelfApp(app);
+            console.log("selfApp built:", app);
+
         } catch (e: any) {
             setError(e?.message || 'Failed to initialize Self app');
         }
     }, [walletAddress, router]);
+
+    useEffect(() => {
+        if (walletAddress && selfApp) {
+            const timeoutId = setTimeout(() => {
+                router.replace('/main/dashboard');
+            }, 5000);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [walletAddress, selfApp, router]);
 
     const handleSuccessfulVerification = () => {
         router.replace('/main/dashboard');
