@@ -50,15 +50,6 @@ export default function IdentityVerificationPage() {
         }
     }, [walletAddress, router]);
 
-    useEffect(() => {
-        if (walletAddress && selfApp) {
-            const timeoutId = setTimeout(() => {
-                router.replace('/main/dashboard');
-            }, 5000);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [walletAddress, selfApp, router]);
-
     const handleSuccessfulVerification = () => {
         router.replace('/main/dashboard');
     };
@@ -88,15 +79,25 @@ export default function IdentityVerificationPage() {
                 {error && (
                     <div className="text-sm text-red-600 dark:text-red-400">
                         {error}
+                        <div className="mt-3">
+                            <button
+                                type="button"
+                                onClick={() => window.location.reload()}
+                                className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-white text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
+                            >
+                                try again
+                            </button>
+                        </div>
                     </div>
                 )}
 
-                {walletAddress && selfApp && (
+                {walletAddress && selfApp && error === null && (
                     <div className="mx-auto max-w-[280px] sm:max-w-[320px]">
                         <SelfQRcodeWrapper
                             selfApp={selfApp}
                             onSuccess={handleSuccessfulVerification}
                             onError={() => {
+                                console.log("onError");
                                 setError('Error: Failed to verify identity');
                             }}
                         />
