@@ -31,10 +31,10 @@ export default function IdentityVerificationPage() {
                 endpoint: '/api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
-                devMode: false,
                 endpointType: "staging_https",
                 userIdType: "hex",
                 userDefinedData: "Hello World",
+                devMode: false,
                 disclosures: {
                     //check the API reference for more disclose attributes!
                     minimumAge: 18,
@@ -96,9 +96,9 @@ export default function IdentityVerificationPage() {
                         <SelfQRcodeWrapper
                             selfApp={selfApp}
                             onSuccess={handleSuccessfulVerification}
-                            onError={() => {
+                            onError={({ reason }) => {
                                 console.log("onError");
-                                setError('Error: Failed to verify identity');
+                                setError(`Error: ${reason || 'Failed to verify identity'}`);
                             }}
                         />
                     </div>
