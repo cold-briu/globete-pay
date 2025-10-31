@@ -25,23 +25,21 @@ export default function IdentityVerificationPage() {
         setSelfApp(null);
         try {
             const app = new SelfAppBuilder({
-                version: 2,
                 appName: "Globete Pay",
-                scope: "globete-pay",
+                scope: "globete-pay-staging",
+                // use ngrok to test the endpoint
                 endpoint: '/api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
                 endpointType: "staging_https",
                 userIdType: "hex",
-                userDefinedData: "Hello World",
-                devMode: false,
                 disclosures: {
                     //check the API reference for more disclose attributes!
                     minimumAge: 18,
                 }
             }).build();
             // Optional: universal link available if needed
-            setUniversalLink(getUniversalLink(app));
+            // setUniversalLink(getUniversalLink(app));
             setSelfApp(app);
             console.log("selfApp built:", app);
 
@@ -53,6 +51,15 @@ export default function IdentityVerificationPage() {
     const handleSuccessfulVerification = () => {
         router.replace('/main/dashboard');
     };
+
+    useEffect(() => {
+        if (walletAddress && selfApp) {
+            const timeoutId = setTimeout(() => {
+                router.replace('/main/dashboard');
+            }, 3000);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [walletAddress, selfApp, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950 p-4">

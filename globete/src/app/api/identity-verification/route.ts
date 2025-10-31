@@ -1,23 +1,37 @@
 import { NextResponse } from 'next/server';
 import { SelfBackendVerifier, AllIds, DefaultConfigStore } from '@selfxyz/core';
 
-// Reuse a single verifier instance
-const selfBackendVerifier = new SelfBackendVerifier(
-    'self-playground',
-    'https://playground.self.xyz/api/verify',
-    false, // mockPassport: false = mainnet, true = staging/testnet
-    AllIds,
-    new DefaultConfigStore({
-        minimumAge: 18,
-        ofac: true,
-    }),
-    'uuid' // userIdentifierType
-);
+// FIXME: Unsupported number of inputs: 0 eslint
+
+let selfBackendVerifier: SelfBackendVerifier | null = null;
+function getVerifier() {
+    if (!selfBackendVerifier) {
+        selfBackendVerifier = new SelfBackendVerifier(
+            'globete-pay-staging',
+            // use ngrok to test the endpoint
+            '/api/identity-verification',
+            true,
+            AllIds,
+            new DefaultConfigStore({ minimumAge: 18 }),
+            'hex'
+        );
+    }
+    return selfBackendVerifier;
+}
+
 
 export async function POST(req: Request) {
     try {
         const { attestationId, proof, publicSignals, userContextData } = await req.json();
-
+        selfBackendVerifier = getVerifier();
+        if (!selfBackendVerifier) {
+            return NextResponse.json(
+                {
+                    message: 'Verifier not found',
+                },
+                { status: 200 }
+            );
+        }
         if (!proof || !publicSignals || !attestationId || !userContextData) {
             return NextResponse.json(
                 {
@@ -66,7 +80,16 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-    return NextResponse.json({ ok: true, message: 'Identity verification endpoint' });
+    selfBackendVerifier = getVerifier();
+    if (!selfBackendVerifier) {
+        return NextResponse.json(
+            {
+                message: 'Verifier not found',
+            },
+            { status: 200 }
+        );
+    }
+    return NextResponse.json({ ok: true, message: 'Identity verification endpoint', selfBackendVerifier: `${selfBackendVerifier ? selfBackendVerifier : 'no verifier'}` });
 }
 
 
