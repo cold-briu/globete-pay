@@ -9,7 +9,7 @@ function getVerifier() {
         selfBackendVerifier = new SelfBackendVerifier(
             'globete-pay-staging',
             // use ngrok to test the endpoint
-            '/api/identity-verification',
+            '/api/globete-api/identity-verification',
             true,
             AllIds,
             new DefaultConfigStore({ minimumAge: 18 }),
@@ -91,5 +91,6 @@ export async function GET() {
     }
     return NextResponse.json({ ok: true, message: 'Identity verification endpoint', selfBackendVerifier: `${selfBackendVerifier ? selfBackendVerifier : 'no verifier'}` });
 }
+
 
 

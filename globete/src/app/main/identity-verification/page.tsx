@@ -28,7 +28,7 @@ export default function IdentityVerificationPage() {
                 appName: "Globete Pay",
                 scope: "globete-pay-staging",
                 // use ngrok to test the endpoint
-                endpoint: '/api/identity-verification',
+                endpoint: '/api/globete-api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
                 endpointType: "staging_https",
