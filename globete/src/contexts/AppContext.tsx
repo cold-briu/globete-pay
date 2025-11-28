@@ -59,6 +59,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const setWalletAddress = (address: string) => {
+        // Clear manual disconnect flag on explicit connect
+        try {
+            localStorage.removeItem('wallet_autoconnect_disabled');
+        } catch {
+            // ignore
+        }
         setSession(prev => ({
             ...prev,
             walletAddress: address,
@@ -93,6 +99,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     const disconnect = () => {
+        // Prevent automatic re-connection on mount unless user reconnects
+        try {
+            localStorage.setItem('wallet_autoconnect_disabled', '1');
+        } catch {
+            // ignore
+        }
         setSession(prev => ({
             ...prev,
             walletAddress: null,
@@ -134,6 +146,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Initialize from provider on mount
         (async () => {
             try {
+                // Respect manual disconnect preference
+                const autoDisabled = (() => {
+                    try {
+                        return localStorage.getItem('wallet_autoconnect_disabled') === '1';
+                    } catch {
+                        return false;
+                    }
+                })();
+                if (autoDisabled) return;
                 const [accounts, chainIdHex] = await Promise.all([
                     ethereum.request({ method: 'eth_accounts' }),
                     ethereum.request({ method: 'eth_chainId' })

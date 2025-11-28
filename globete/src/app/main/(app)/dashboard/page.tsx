@@ -4,9 +4,11 @@ import { useApp } from '@/contexts/AppContext';
 import { shortenAddress, formatCOP, formatTokenAmount } from '@/lib/utils';
 import { TransactionItem } from '@/components/TransactionItem';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-    const { session, balances, transactions } = useApp();
+    const router = useRouter();
+    const { session, balances, transactions, disconnect } = useApp();
 
     const cCOPBalance = formatTokenAmount(balances.cCOP, 18, 2);
     const cCOPInCOP = parseFloat(cCOPBalance); // 1:1 ratio for cCOP to COP
@@ -21,11 +23,28 @@ export default function DashboardPage() {
                             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                             <span>{session.network.name}</span>
                         </div>
-                        {session.walletAddress && (
-                            <div className="text-sm font-mono">
-                                {shortenAddress(session.walletAddress)}
-                            </div>
-                        )}
+                        <div className="flex items-center gap-3">
+                            {session.walletAddress && (
+                                <div className="text-sm font-mono">
+                                    {shortenAddress(session.walletAddress)}
+                                </div>
+                            )}
+                            <button
+                                onClick={() => {
+                                    try {
+                                        localStorage.setItem('wallet_autoconnect_disabled', '1');
+                                    } catch {
+                                        // ignore
+                                    }
+                                    disconnect();
+                                    router.replace('/main');
+                                }}
+                                className="text-xs px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
+                                aria-label="Disconnect Wallet"
+                            >
+                                Disconnect
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -20,7 +20,7 @@ const celoPublicClient = createPublicClient({
 });
 
 export default function MainPage() {
-    const { setWalletAddress, setNetwork } = useApp();
+    const { session, setWalletAddress, setNetwork } = useApp();
     const router = useRouter();
     const [rpcStatus, setRpcStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [rpcChainId, setRpcChainId] = useState<number | null>(null);
@@ -51,6 +51,13 @@ export default function MainPage() {
             isMounted = false;
         };
     }, []);
+
+    // If wallet already connected, send users to dashboard
+    useEffect(() => {
+        if (session?.isConnected && session.walletAddress) {
+            router.replace('/main/dashboard');
+        }
+    }, [session?.isConnected, session?.walletAddress, router]);
 
     async function handleConnect() {
         setIsConnecting(true);
