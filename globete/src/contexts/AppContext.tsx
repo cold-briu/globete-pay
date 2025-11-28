@@ -9,12 +9,7 @@ import type {
     Session,
     Transaction
 } from '@/contexts/types';
-import rawMockTransactions from '@/contexts/mockTransactions.json';
-// Prepare mock transactions from JSON (fill missing timestamps)
-const MOCK_TRANSACTIONS: Transaction[] = (rawMockTransactions as unknown as Transaction[]).map(t => ({
-    ...t,
-    timestamp: t.timestamp && t.timestamp.length > 0 ? t.timestamp : new Date().toISOString()
-}));
+import { fetchTransactions } from '@/services/transactions';
 
 const NETWORKS: Record<NetworkType, Network> = {
     alfajores: {
@@ -45,7 +40,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cEUR: '0'
     });
 
-    const [transactions, setTransactions] = useState<Transaction[]>(MOCK_TRANSACTIONS);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [transactionsLoading, setTransactionsLoading] = useState<boolean>(true);
 
     // Load persisted camera permission on mount (wallet address/network comes from provider)
     useEffect(() => {
@@ -56,6 +52,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 cameraPermission: savedPermission
             }));
         }
+    }, []);
+
+    // Load mocked transactions from API on mount
+    useEffect(() => {
+        let isMounted = true;
+        (async () => {
+            try {
+                if (isMounted) setTransactionsLoading(true);
+                const list = await fetchTransactions();
+                if (isMounted) {
+                    setTransactions(list);
+                }
+            } finally {
+                if (isMounted) setTransactionsLoading(false);
+            }
+        })();
+        return () => { isMounted = false; };
     }, []);
 
     const setWalletAddress = (address: string) => {
@@ -184,6 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 session,
                 balances,
                 transactions,
+                transactionsLoading,
                 setWalletAddress,
                 setNetwork,
                 setCameraPermission,

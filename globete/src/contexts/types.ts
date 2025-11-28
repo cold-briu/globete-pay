@@ -48,6 +48,7 @@ export interface AppContextType {
     session: Session;
     balances: Balance;
     transactions: Transaction[];
+    transactionsLoading: boolean;
     setWalletAddress: (address: string) => void;
     setNetwork: (network: Network) => void;
     setCameraPermission: (permission: Session['cameraPermission']) => void;

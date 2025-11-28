@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { session, balances, transactions, disconnect } = useApp();
+    const { session, balances, transactions, transactionsLoading, disconnect } = useApp();
 
     const cCOPBalance = formatTokenAmount(balances.cCOP, 18, 2);
     const cCOPInCOP = parseFloat(cCOPBalance); // 1:1 ratio for cCOP to COP
@@ -119,7 +119,23 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {transactions.length === 0 ? (
+                    {transactionsLoading ? (
+                        /* Loader */
+                        <div className="space-y-2 animate-pulse">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600" />
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-600 rounded" />
+                                            <div className="h-3 w-24 bg-gray-200 dark:bg-gray-600 rounded" />
+                                        </div>
+                                    </div>
+                                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-600 rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : transactions.length === 0 ? (
                         /* Empty State */
                         <div className="text-center py-12">
                             <div className="text-6xl mb-4">📭</div>
