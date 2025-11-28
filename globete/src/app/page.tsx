@@ -2,12 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Globete Pay - Instant Crypto Payments in Colombia | cCOP & Mento Stablecoins",
-  description: "Pay instantly in Colombia using crypto. Accept cCOP and Mento stablecoins with instant settlement via Bre-B infrastructure. No bank account required, low fees.",
+  title: "Globete Pay — Pay Instantly in Colombia with Crypto via Bre-B | cCOP & Mento",
+  description: "Pay instantly in Colombia with crypto via Bre-B. Spend cCOP and other Mento stablecoins with instant settlement. No bank account or off-ramp required, ultra-low fees.",
   keywords: ["crypto payments", "Colombia", "cCOP", "Mento", "Bre-B", "stablecoins", "instant payments", "Celo"],
   openGraph: {
-    title: "Globete Pay - Instant Crypto Payments in Colombia",
-    description: "Seamless payment app for instant crypto transactions in Colombia using Bre-B infrastructure",
+    title: "Globete Pay — Instant Crypto Payments in Colombia via Bre-B",
+    description: "Spend cCOP and other Mento stablecoins instantly in Colombia. No bank or off-ramp required.",
     type: "website",
   },
 };
@@ -57,11 +57,12 @@ export default function Landing() {
                 Pay Instantly in Colombia
               </span>
               <br />
-              <span className="text-gray-900 dark:text-white">with Crypto</span>
+              <span className="text-gray-900 dark:text-white">with Crypto via Bre-B</span>
             </h1>
             <p className="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
               A seamless payment app that lets you pay or transfer value using <strong>cCOP</strong> and <strong>Mento stablecoins</strong>,
-              while settling transactions instantly over Colombia's <strong>Bre-B infrastructure</strong>.
+              with instant settlement over Colombia's <strong>Bre-B infrastructure</strong> —
+              no bank account or off-ramp required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
@@ -132,9 +133,9 @@ export default function Landing() {
 
             <div className="group p-8 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-purple-100 dark:border-gray-700">
               <div className="text-5xl mb-4">🌐</div>
-              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">No Bank Required</h3>
+              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">No Bank or Off-Ramp Required</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Pay without a bank account or complex off-ramp processes. True financial freedom.
+                Pay without a bank account or off-ramp. Spend stablecoins directly for everyday goods and services.
               </p>
             </div>
 
@@ -142,7 +143,7 @@ export default function Landing() {
               <div className="text-5xl mb-4">💰</div>
               <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Ultra-Low Costs</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Avoid expensive off-ramp and international transfer fees. Keep more of your money.
+                Skip expensive off-ramps and traditional payment fees. Keep more of your money.
               </p>
             </div>
 
@@ -228,8 +229,8 @@ export default function Landing() {
                 Built for the Future of Finance
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                Globete Pay leverages the best of blockchain technology to provide a payment experience
-                that's faster, cheaper, and more accessible than traditional banking.
+                Our mission is to make digital money truly usable in Colombia by connecting crypto with Bre-B —
+                delivering a payment experience that's faster, cheaper, and more accessible than traditional banking.
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start">
@@ -243,14 +244,14 @@ export default function Landing() {
                   <span className="text-2xl mr-4">✅</span>
                   <div>
                     <h4 className="font-bold text-lg text-gray-900 dark:text-white">Stablecoin Powered</h4>
-                    <p className="text-gray-600 dark:text-gray-400">No crypto volatility with cCOP and Mento tokens</p>
+                    <p className="text-gray-600 dark:text-gray-400">Spend cCOP and other Mento tokens directly, without volatility</p>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="text-2xl mr-4">✅</span>
                   <div>
                     <h4 className="font-bold text-lg text-gray-900 dark:text-white">Financial Inclusion</h4>
-                    <p className="text-gray-600 dark:text-gray-400">Banking for the unbanked and underbanked</p>
+                    <p className="text-gray-600 dark:text-gray-400">No bank account or off-ramp needed to pay in Colombia</p>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -312,7 +313,7 @@ export default function Landing() {
                 Globete Pay 🎈
               </h3>
               <p className="text-gray-400 text-sm">
-                Instant crypto payments for Colombia, powered by Celo and Bre-B.
+                Instant crypto payments in Colombia via Bre-B — no bank or off-ramp required.
               </p>
             </div>
             <div>
