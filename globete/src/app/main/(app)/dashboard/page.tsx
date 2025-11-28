@@ -1,17 +1,170 @@
 "use client";
 
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { shortenAddress, formatCOP, formatTokenAmount } from '@/lib/utils';
+import { shortenAddress, formatTokenAmount, formatCOP } from '@/lib/utils';
 import { TransactionItem } from '@/components/TransactionItem';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createPublicClient, http } from 'viem';
+import { celo } from 'viem/chains';
 
 export default function DashboardPage() {
     const router = useRouter();
     const { session, balances, transactions, transactionsLoading, disconnect } = useApp();
 
-    const cCOPBalance = formatTokenAmount(balances.cCOP, 18, 2);
-    const cCOPInCOP = parseFloat(cCOPBalance); // 1:1 ratio for cCOP to COP
+    // Public client for Celo mainnet
+    const publicClient = useMemo(() => {
+        return createPublicClient({
+            chain: {
+                ...celo,
+                id: 42220,
+                rpcUrls: {
+                    default: { http: ['https://forno.celo.org'] },
+                    public: { http: ['https://forno.celo.org'] }
+                }
+            },
+            transport: http('https://forno.celo.org')
+        });
+    }, []);
+
+    // Minimal ERC20 ABI (balanceOf)
+    const erc20Abi = [
+        {
+            type: 'function',
+            name: 'balanceOf',
+            stateMutability: 'view',
+            inputs: [{ name: 'account', type: 'address' }],
+            outputs: [{ name: '', type: 'uint256' }]
+        }
+    ] as const;
+
+    const [tokenBalances, setTokenBalances] = useState<{
+        CELO: string;
+        cCOP: string;
+        cUSD: string;
+        cREAL: string;
+        cEUR: string;
+    }>({
+        CELO: '0',
+        cCOP: '0',
+        cUSD: '0',
+        cREAL: '0',
+        cEUR: '0'
+    });
+
+    const [balancesLoading, setBalancesLoading] = useState<boolean>(false);
+    const [displayCurrency, setDisplayCurrency] = useState<'COP' | 'USD' | 'EUR'>('COP');
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchBalances = async () => {
+            if (!session?.walletAddress || !session?.isConnected) return;
+            try {
+                setBalancesLoading(true);
+                const address = session.walletAddress as `0x${string}`;
+
+                // Native CELO
+                const celoBal = await publicClient.getBalance({ address });
+
+                // ERC20 tokens
+                const [cCOPBal, cUSDBal, cREALBal, cEURBal] = await Promise.all([
+                    publicClient.readContract({
+                        address: '0x8a567e2ae79ca692bd748ab832081c45de4041ea',
+                        abi: erc20Abi,
+                        functionName: 'balanceOf',
+                        args: [address]
+                    } as any),
+                    publicClient.readContract({
+                        address: '0x765de816845861e75a25fca122bb6898b8b1282a',
+                        abi: erc20Abi,
+                        functionName: 'balanceOf',
+                        args: [address]
+                    } as any),
+                    publicClient.readContract({
+                        address: '0xe8537a3d056da446677b9e9d6c5db704eaab4787',
+                        abi: erc20Abi,
+                        functionName: 'balanceOf',
+                        args: [address]
+                    } as any),
+                    publicClient.readContract({
+                        address: '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73',
+                        abi: erc20Abi,
+                        functionName: 'balanceOf',
+                        args: [address]
+                    } as any)
+                ]);
+
+                if (!isMounted) return;
+                setTokenBalances({
+                    CELO: celoBal.toString(),
+                    cCOP: (cCOPBal as bigint).toString(),
+                    cUSD: (cUSDBal as bigint).toString(),
+                    cREAL: (cREALBal as bigint).toString(),
+                    cEUR: (cEURBal as bigint).toString()
+                });
+            } catch {
+                if (!isMounted) return;
+                setTokenBalances({
+                    CELO: '0',
+                    cCOP: '0',
+                    cUSD: '0',
+                    cREAL: '0',
+                    cEUR: '0'
+                });
+            } finally {
+                if (isMounted) setBalancesLoading(false);
+            }
+        };
+        fetchBalances();
+        return () => {
+            isMounted = false;
+        };
+    }, [publicClient, session?.walletAddress, session?.isConnected]);
+
+    // Human-readable amounts (18 decimals → 2 display decimals)
+    const humanCELO = formatTokenAmount(tokenBalances.CELO, 18, 2);
+    const humanCCOP = formatTokenAmount(tokenBalances.cCOP, 18, 2);
+    const humanCUSD = formatTokenAmount(tokenBalances.cUSD, 18, 2);
+    const humanCREAL = formatTokenAmount(tokenBalances.cREAL, 18, 2);
+    const humanCEUR = formatTokenAmount(tokenBalances.cEUR, 18, 2);
+
+    // Static prices and FX (placeholder values)
+    const STATIC = {
+        USD_PER_CELO: 0.75,
+        USD_PER_COP: 0.00025,
+        USD_PER_BRL: 0.20,
+        USD_PER_EUR: 1.08
+    };
+
+    const amtCELO = parseFloat(humanCELO) || 0;
+    const amtCCOP = parseFloat(humanCCOP) || 0;
+    const amtCUSD = parseFloat(humanCUSD) || 0;
+    const amtCREAL = parseFloat(humanCREAL) || 0;
+    const amtCEUR = parseFloat(humanCEUR) || 0;
+
+    // Convert each token to USD using static prices, then convert to selected currency
+    const totalUSD =
+        amtCELO * STATIC.USD_PER_CELO +
+        amtCCOP * STATIC.USD_PER_COP +
+        amtCUSD * 1 +
+        amtCREAL * STATIC.USD_PER_BRL +
+        amtCEUR * STATIC.USD_PER_EUR;
+
+    const totalInSelected =
+        displayCurrency === 'USD'
+            ? totalUSD
+            : displayCurrency === 'EUR'
+                ? (STATIC.USD_PER_EUR > 0 ? totalUSD / STATIC.USD_PER_EUR : 0)
+                : (STATIC.USD_PER_COP > 0 ? totalUSD / STATIC.USD_PER_COP : 0); // COP
+
+    const formatFiat = (amount: number, currency: 'USD' | 'EUR') =>
+        new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -63,26 +216,50 @@ export default function DashboardPage() {
 
                 {/* Balance Card */}
                 <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
-                    <div className="text-white/80 text-sm mb-2">Total Balance</div>
-                    <div className="text-white text-4xl sm:text-5xl font-bold mb-4">
-                        {formatCOP(cCOPInCOP)}
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                        <div className="text-white/80 text-sm">Total Balance</div>
+                        <div className="flex gap-1 bg-white/10 rounded-lg p-1 border border-white/20">
+                            {(['COP', 'USD', 'EUR'] as const).map(cur => (
+                                <button
+                                    key={cur}
+                                    onClick={() => setDisplayCurrency(cur)}
+                                    className={`text-xs px-2 py-1 rounded-md transition-colors ${displayCurrency === cur
+                                        ? 'bg-white text-gray-900'
+                                        : 'text-white/80 hover:bg-white/20'
+                                        }`}
+                                    aria-label={`Show total in ${cur}`}
+                                >
+                                    {cur}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div className="text-white/70 text-sm">
-                        {cCOPBalance} cCOP
+                    <div className="text-white text-4xl sm:text-5xl font-bold mb-4">
+                        {balancesLoading
+                            ? '…'
+                            : displayCurrency === 'COP'
+                                ? formatCOP(totalInSelected)
+                                : formatFiat(totalInSelected, displayCurrency)}
+                    </div>
+                    <div className="text-white/70 text-sm flex flex-wrap gap-2">
+                        <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
+                            CELO {balancesLoading ? '…' : humanCELO}
+                        </span>
+                        <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
+                            cCOP {balancesLoading ? '…' : humanCCOP}
+                        </span>
+                        <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
+                            cUSD {balancesLoading ? '…' : humanCUSD}
+                        </span>
+                        <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
+                            cREAL {balancesLoading ? '…' : humanCREAL}
+                        </span>
+                        <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
+                            cEUR {balancesLoading ? '…' : humanCEUR}
+                        </span>
                     </div>
 
-                    {/* Token Selector Placeholder */}
-                    <div className="mt-6 flex gap-2">
-                        <button className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm font-medium hover:bg-white/30 transition-colors border border-white/20">
-                            cCOP
-                        </button>
-                        <button className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg text-white/70 text-sm font-medium hover:bg-white/20 transition-colors">
-                            cUSD
-                        </button>
-                        <button className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg text-white/70 text-sm font-medium hover:bg-white/20 transition-colors">
-                            cEUR
-                        </button>
-                    </div>
+                    {/* Removed token selector placeholder; showing live balances as badges */}
                 </div>
 
                 {/* Quick Actions */}
