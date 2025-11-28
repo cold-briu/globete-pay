@@ -5,7 +5,7 @@ export async function POST(req: Request) {
         let body: any = null;
         try { body = await req.json(); } catch { }
         return NextResponse.json({ actionAccepted: true, received: body ?? null }, { status: 200 });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ actionAccepted: true }, { status: 200 });
     }
 }

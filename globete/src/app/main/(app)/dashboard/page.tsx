@@ -11,7 +11,7 @@ import { celo } from 'viem/chains';
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { session, balances, transactions, transactionsLoading, disconnect } = useApp();
+    const { session, transactions, transactionsLoading, disconnect } = useApp();
 
     // Public client for Celo mainnet
     const publicClient = useMemo(() => {
@@ -29,7 +29,7 @@ export default function DashboardPage() {
     }, []);
 
     // Minimal ERC20 ABI (balanceOf)
-    const erc20Abi = [
+    const erc20Abi = useMemo(() => ([
         {
             type: 'function',
             name: 'balanceOf',
@@ -37,7 +37,7 @@ export default function DashboardPage() {
             inputs: [{ name: 'account', type: 'address' }],
             outputs: [{ name: '', type: 'uint256' }]
         }
-    ] as const;
+    ] as const), []);
 
     const [tokenBalances, setTokenBalances] = useState<{
         CELO: string;
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         return () => {
             isMounted = false;
         };
-    }, [publicClient, session?.walletAddress, session?.isConnected]);
+    }, [publicClient, session?.walletAddress, session?.isConnected, erc20Abi]);
 
     // Human-readable amounts (18 decimals → 2 display decimals)
     const humanCELO = formatTokenAmount(tokenBalances.CELO, 18, 2);

@@ -7,7 +7,7 @@ interface TransactionItemProps {
 }
 
 export function TransactionItem({ transaction }: TransactionItemProps) {
-    const { direction, counterparty, amountCOP, status, timestamp, note, token } = transaction;
+    const { direction, counterparty, amountCOP, status, timestamp, note } = transaction;
 
     const getStatusColor = () => {
         switch (status) {

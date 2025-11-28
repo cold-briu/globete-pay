@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getUniversalLink } from "@selfxyz/core";
 import { SelfQRcodeWrapper, SelfAppBuilder, type SelfApp } from "@selfxyz/qrcode";
 import { useApp } from '@/contexts/AppContext';
 import { useRouter } from 'next/navigation';
@@ -10,8 +9,6 @@ export default function IdentityVerificationPage() {
     const { session } = useApp();
     const walletAddress = session.walletAddress;
     const router = useRouter();
-
-    const [universalLink, setUniversalLink] = useState("");
 
     const [selfApp, setSelfApp] = useState<SelfApp | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -38,8 +35,6 @@ export default function IdentityVerificationPage() {
                     minimumAge: 18,
                 }
             }).build();
-            // Optional: universal link available if needed
-            // setUniversalLink(getUniversalLink(app));
             setSelfApp(app);
             console.log("selfApp built:", app);
 

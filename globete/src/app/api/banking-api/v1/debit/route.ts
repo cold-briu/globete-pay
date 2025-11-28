@@ -9,7 +9,7 @@ export async function POST(req: Request) {
             state: 'DEBITED',
             received: body ?? null
         }, { status: 200 });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ debitRef: 'BANK-DEBIT-MOCK', state: 'DEBITED' }, { status: 200 });
     }
 }

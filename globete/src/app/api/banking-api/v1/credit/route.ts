@@ -9,7 +9,7 @@ export async function POST(req: Request) {
             state: 'CREDITED',
             received: body ?? null
         }, { status: 200 });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ creditRef: 'BANK-CREDIT-MOCK', state: 'CREDITED' }, { status: 200 });
     }
 }

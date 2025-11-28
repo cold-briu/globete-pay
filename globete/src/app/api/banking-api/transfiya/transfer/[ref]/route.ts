@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-    _req: Request,
-    { params }: { params: { ref: string } }
+    _req: NextRequest,
+    context: { params: Promise<{ ref: string }> }
 ) {
-    const { ref } = params;
+    const { ref } = await context.params;
     return NextResponse.json({
         transferRef: ref,
         state: 'CREDITED',
