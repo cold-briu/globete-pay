@@ -11,7 +11,7 @@
   "dependencies": {
     "@selfxyz/core": "1.1.0-beta.4",
     "@selfxyz/qrcode": "1.0.9",
-    "next": "15.5.4",
+    "next": "15.5.7",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "viem": "^2.38.3"
