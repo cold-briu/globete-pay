@@ -1,32 +1,45 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { useApp } from '@/contexts/AppContext';
+import { useApp, NETWORKS } from '@/contexts/AppContext';
 import { shortenAddress, formatTokenAmount, formatCOP } from '@/lib/utils';
 import { TransactionItem } from '@/components/TransactionItem';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createPublicClient, http } from 'viem';
-import { celo } from 'viem/chains';
+import { celo, celoAlfajores } from 'viem/chains';
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { session, transactions, transactionsLoading, disconnect } = useApp();
+    const { session, transactions, transactionsLoading, disconnect, setNetwork } = useApp();
 
-    // Public client for Celo mainnet
+    // Public client for selected Celo network
     const publicClient = useMemo(() => {
+        if (session.network.type === 'mainnet') {
+            return createPublicClient({
+                chain: {
+                    ...celo,
+                    id: 42220,
+                    rpcUrls: {
+                        default: { http: ['https://forno.celo.org'] },
+                        public: { http: ['https://forno.celo.org'] }
+                    }
+                },
+                transport: http('https://forno.celo.org')
+            });
+        }
         return createPublicClient({
             chain: {
-                ...celo,
-                id: 42220,
+                ...celoAlfajores,
+                id: 11142220,
                 rpcUrls: {
-                    default: { http: ['https://forno.celo.org'] },
-                    public: { http: ['https://forno.celo.org'] }
+                    default: { http: ['https://forno.celo-sepolia.celo-testnet.org'] },
+                    public: { http: ['https://forno.celo-sepolia.celo-testnet.org'] }
                 }
             },
-            transport: http('https://forno.celo.org')
+            transport: http('https://forno.celo-sepolia.celo-testnet.org')
         });
-    }, []);
+    }, [session.network.type]);
 
     // Minimal ERC20 ABI (balanceOf)
     const erc20Abi = useMemo(() => ([
@@ -67,8 +80,21 @@ export default function DashboardPage() {
                 // Native CELO
                 const celoBal = await publicClient.getBalance({ address });
 
-                // ERC20 tokens
-                const [cCOPBal, cUSDBal, cREALBal, cEURBal] = await Promise.all([
+                // If not mainnet, token addresses may not exist; show CELO and zero for tokens
+                if (session.network.type !== 'mainnet') {
+                    if (!isMounted) return;
+                    setTokenBalances({
+                        CELO: celoBal.toString(),
+                        cCOP: '0',
+                        cUSD: '0',
+                        cREAL: '0',
+                        cEUR: '0'
+                    });
+                    return;
+                }
+
+                // ERC20 tokens (mainnet addresses)
+                const results = await Promise.allSettled([
                     publicClient.readContract({
                         address: '0x8a567e2ae79ca692bd748ab832081c45de4041ea',
                         abi: erc20Abi,
@@ -94,6 +120,7 @@ export default function DashboardPage() {
                         args: [address]
                     } as any)
                 ]);
+                const [cCOPBal, cUSDBal, cREALBal, cEURBal] = results.map(r => r.status === 'fulfilled' ? r.value as bigint : 0n);
 
                 if (!isMounted) return;
                 setTokenBalances({
@@ -105,6 +132,7 @@ export default function DashboardPage() {
                 });
             } catch {
                 if (!isMounted) return;
+                // Preserve CELO when available on errors would require caching; fallback to zeros
                 setTokenBalances({
                     CELO: '0',
                     cCOP: '0',
@@ -120,7 +148,7 @@ export default function DashboardPage() {
         return () => {
             isMounted = false;
         };
-    }, [publicClient, session?.walletAddress, session?.isConnected, erc20Abi]);
+    }, [publicClient, session?.walletAddress, session?.isConnected, session.network.type, erc20Abi]);
 
     // Human-readable amounts (18 decimals → 2 display decimals)
     const humanCELO = formatTokenAmount(tokenBalances.CELO, 18, 2);
@@ -177,6 +205,66 @@ export default function DashboardPage() {
                             <span>{session.network.name}</span>
                         </div>
                         <div className="flex items-center gap-3">
+                            <div className="hidden sm:flex items-center">
+                                <div className="inline-flex rounded-full bg-white/10 border border-white/20 overflow-hidden">
+                                    <button
+                                        onClick={async () => {
+                                            setNetwork(NETWORKS.sepolia);
+                                            try {
+                                                await (window as any)?.ethereum?.request?.({
+                                                    method: 'wallet_switchEthereumChain',
+                                                    params: [{ chainId: '0xaa044c' }]
+                                                });
+                                            } catch (switchErr: any) {
+                                                if (switchErr?.code === 4902) {
+                                                    await (window as any)?.ethereum?.request?.({
+                                                        method: 'wallet_addEthereumChain',
+                                                        params: [{
+                                                            chainId: '0xaa044c',
+                                                            chainName: 'Celo Sepolia',
+                                                            nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 },
+                                                            rpcUrls: ['https://forno.celo-sepolia.celo-testnet.org'],
+                                                            blockExplorerUrls: ['https://celo-sepolia.blockscout.com']
+                                                        }]
+                                                    });
+                                                }
+                                            }
+                                        }}
+                                        className={`text-xs px-3 py-1.5 transition-colors ${session.network.type === 'sepolia' ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10'}`}
+                                        aria-pressed={session.network.type === 'sepolia'}
+                                    >
+                                        Sepolia
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            setNetwork(NETWORKS.mainnet);
+                                            try {
+                                                await (window as any)?.ethereum?.request?.({
+                                                    method: 'wallet_switchEthereumChain',
+                                                    params: [{ chainId: '0xa4ec' }]
+                                                });
+                                            } catch (switchErr: any) {
+                                                if (switchErr?.code === 4902) {
+                                                    await (window as any)?.ethereum?.request?.({
+                                                        method: 'wallet_addEthereumChain',
+                                                        params: [{
+                                                            chainId: '0xa4ec',
+                                                            chainName: 'Celo Mainnet',
+                                                            nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 },
+                                                            rpcUrls: ['https://forno.celo.org'],
+                                                            blockExplorerUrls: ['https://celoscan.io']
+                                                        }]
+                                                    });
+                                                }
+                                            }
+                                        }}
+                                        className={`text-xs px-3 py-1.5 transition-colors border-l border-white/20 ${session.network.type === 'mainnet' ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10'}`}
+                                        aria-pressed={session.network.type === 'mainnet'}
+                                    >
+                                        Mainnet
+                                    </button>
+                                </div>
+                            </div>
                             {session.walletAddress && (
                                 <div className="text-sm font-mono">
                                     {shortenAddress(session.walletAddress)}
@@ -235,27 +323,39 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="text-white text-4xl sm:text-5xl font-bold mb-4">
-                        {balancesLoading
-                            ? '…'
-                            : displayCurrency === 'COP'
-                                ? formatCOP(totalInSelected)
-                                : formatFiat(totalInSelected, displayCurrency)}
+                        {balancesLoading ? (
+                            <span className="inline-flex items-center">
+                                <span className="inline-block w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading total balance" />
+                            </span>
+                        ) : displayCurrency === 'COP'
+                            ? formatCOP(totalInSelected)
+                            : formatFiat(totalInSelected, displayCurrency)}
                     </div>
                     <div className="text-white/70 text-sm flex flex-wrap gap-2">
                         <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
-                            CELO {balancesLoading ? '…' : humanCELO}
+                            CELO {balancesLoading
+                                ? <span className="inline-block align-[-2px] w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading CELO balance" />
+                                : humanCELO}
                         </span>
                         <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
-                            cCOP {balancesLoading ? '…' : humanCCOP}
+                            cCOP {balancesLoading
+                                ? <span className="inline-block align-[-2px] w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading cCOP balance" />
+                                : humanCCOP}
                         </span>
                         <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
-                            cUSD {balancesLoading ? '…' : humanCUSD}
+                            cUSD {balancesLoading
+                                ? <span className="inline-block align-[-2px] w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading cUSD balance" />
+                                : humanCUSD}
                         </span>
                         <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
-                            cREAL {balancesLoading ? '…' : humanCREAL}
+                            cREAL {balancesLoading
+                                ? <span className="inline-block align-[-2px] w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading cREAL balance" />
+                                : humanCREAL}
                         </span>
                         <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">
-                            cEUR {balancesLoading ? '…' : humanCEUR}
+                            cEUR {balancesLoading
+                                ? <span className="inline-block align-[-2px] w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="Loading cEUR balance" />
+                                : humanCEUR}
                         </span>
                     </div>
 

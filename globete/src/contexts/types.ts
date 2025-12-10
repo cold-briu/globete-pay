@@ -1,4 +1,4 @@
-export type NetworkType = 'alfajores' | 'mainnet';
+export type NetworkType = 'sepolia' | 'mainnet';
 export type TransactionStatus = 'pending' | 'confirmed' | 'settled' | 'failed';
 export type TransactionDirection = 'sent' | 'received';
 export type TokenType = 'cCOP' | 'cUSD' | 'cEUR';

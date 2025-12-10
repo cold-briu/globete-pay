@@ -25,7 +25,7 @@ export default function IdentityVerificationPage() {
                 appName: "Globete Pay",
                 scope: "globete-pay-staging",
                 // use ngrok to test the endpoint
-                endpoint: '/api/globete-api/identity-verification',
+                endpoint: 'https://globete-pay.vercel.app/api/globete-api/identity-verification',
                 logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                 userId: walletAddress,
                 endpointType: "staging_https",
@@ -47,14 +47,7 @@ export default function IdentityVerificationPage() {
         router.replace('/main/dashboard');
     };
 
-    useEffect(() => {
-        if (walletAddress && selfApp) {
-            const timeoutId = setTimeout(() => {
-                router.replace('/main/dashboard');
-            }, 3000);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [walletAddress, selfApp, router]);
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950 p-4">

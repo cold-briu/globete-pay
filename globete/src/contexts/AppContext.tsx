@@ -12,10 +12,10 @@ import type {
 import { fetchTransactions } from '@/services/transactions';
 
 const NETWORKS: Record<NetworkType, Network> = {
-    alfajores: {
-        name: 'Celo Alfajores',
-        chainId: 44787,
-        type: 'alfajores'
+    sepolia: {
+        name: 'Celo Sepolia',
+        chainId: 11142220,
+        type: 'sepolia'
     },
     mainnet: {
         name: 'Celo Mainnet',
@@ -30,7 +30,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [session, setSession] = useState<Session>({
         walletAddress: null,
         isConnected: false,
-        network: NETWORKS.alfajores, // Default to Alfajores for testing
+        network: NETWORKS.sepolia, // Default to Sepolia for testing
         cameraPermission: 'unknown'
     });
 
@@ -150,7 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     ? parseInt(chainIdHex, 16)
                     : Number(chainIdHex);
                 if (id === 42220) setNetwork(NETWORKS.mainnet);
-                if (id === 44787) setNetwork(NETWORKS.alfajores);
+                if (id === 11142220) setNetwork(NETWORKS.sepolia);
             } catch {
                 // ignore
             }

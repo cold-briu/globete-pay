@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { SelfBackendVerifier, AllIds, DefaultConfigStore } from '@selfxyz/core';
 
 // FIXME: Unsupported number of inputs: 0 eslint
+// FIXME: Error: error decoding response body: missing field `status` at line 1 column 82
 
 let selfBackendVerifier: SelfBackendVerifier | null = null;
 function getVerifier() {
     if (!selfBackendVerifier) {
         selfBackendVerifier = new SelfBackendVerifier(
             'globete-pay-staging',
-            // use ngrok to test the endpoint
             'https://globete-pay.vercel.app/api/globete-api/identity-verification',
             true,
             AllIds,
