@@ -9,7 +9,7 @@ function getVerifier() {
         selfBackendVerifier = new SelfBackendVerifier(
             'globete-pay-staging',
             // use ngrok to test the endpoint
-            '/api/globete-api/identity-verification',
+            'https://globete-pay.vercel.app/api/globete-api/identity-verification',
             true,
             AllIds,
             new DefaultConfigStore({ minimumAge: 18 }),
